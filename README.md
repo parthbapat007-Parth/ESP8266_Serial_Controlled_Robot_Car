@@ -129,9 +129,8 @@ graph TD
 
 ## Code
 
-Full source: [`robot_car.ino`](./robot_car.ino)
-
-![Full Code](./robot_car.ino)
+Full source: 
+[robot_car.ino](./robot_car.ino)
 
 The complete implementation, including the movement functions and main loop, is available in the `.ino` file.
 
