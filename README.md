@@ -131,27 +131,7 @@ graph TD
 
 Full source: [`robot_car.ino`](./robot_car.ino)
 
-```cpp
-// Motor A pins
-int ENA = D5;   // GPIO14
-int IN1 = D1;   // GPIO5
-int IN2 = D2;   // GPIO4
-// Motor B pins
-int ENB = D6;   // GPIO12
-int IN3 = D3;   // GPIO0
-int IN4 = D4;   // GPIO2
 
-void setup() {
-  Serial.begin(9600);
-  pinMode(ENA, OUTPUT);
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
-  pinMode(ENB, OUTPUT);
-  pinMode(IN3, OUTPUT);
-  pinMode(IN4, OUTPUT);
-  Serial.println("Send Command: F,B,L,R,S");
-}
-```
 
 The complete implementation, including the movement functions and main loop, is available in the `.ino` file.
 
