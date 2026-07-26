@@ -1,81 +1,95 @@
 # ESP8266 Serial-Controlled Robot Car
 
-A simple two-motor robot car built on a **NodeMCU (ESP8266)** board and an **L298N motor driver**, controlled by sending single-character commands (`F`, `B`, `L`, `R`, `S`) over a Serial connection.
+A two-motor robot car built around a NodeMCU (ESP8266) and an L298N motor driver, controlled through simple serial commands (`F`, `B`, `L`, `R`, `S`). I built this as a foundational embedded systems project to practice motor control, PWM-based speed regulation, and serial communication before extending it into wireless or sensor-driven versions.
 
 ---
 
 ## Overview
 
-This project is a beginner-to-intermediate level embedded systems build that demonstrates basic motor control using an ESP8266 microcontroller. The car moves forward, backward, turns left/right, and stops based on commands typed into the Arduino IDE's Serial Monitor. It's a foundational project that can later be extended into a Bluetooth-, WiFi-, or app-controlled robot.
+This project focuses on the fundamentals: driving two DC motors through an H-bridge driver, controlling direction and speed from a microcontroller, and structuring a clean command-based control scheme. I deliberately kept the first version wired (USB Serial) rather than wireless, so I could verify the core motor control logic worked reliably before adding any communication layer on top of it.
+
+The chassis is a wooden board I cut and drilled myself, with two driven wheels and a caster wheel for support at the front.
 
 ---
 
 ## Features
 
-- Directional control: Forward, Backward, Left turn, Right turn, Stop
-- Single-character command protocol (`F` / `B` / `L` / `R` / `S`)
-- Real-time feedback printed to Serial Monitor (e.g. `Moving FORWARD`, `STOPPED`)
-- Full-speed PWM drive via `analogWrite()` (10-bit range on ESP8266)
-- Simple, breadboard-friendly wiring — easy to replicate or modify
-- Compact chassis with two motors + a caster/support wheel for balance
+- Directional control: forward, backward, left turn, right turn, stop
+- Command-driven control via single-character serial input
+- Real-time status feedback printed to the Serial Monitor for debugging
+- Full-speed PWM output on both motors (10-bit resolution, ESP8266-specific)
+- Compact, breadboard-friendly wiring suitable for prototyping
 
 ---
 
 ## Components Used
 
-| Component | Quantity | Purpose |
+| Component | Qty | Purpose |
 |---|---|---|
 | NodeMCU (ESP8266) | 1 | Main microcontroller |
-| L298N Motor Driver Module | 1 | Drives both DC motors (H-Bridge) |
+| L298N Motor Driver | 1 | Drives both DC motors via H-bridge |
 | DC Geared Motors | 2 | Wheel drive |
-| Robot Chassis (wood/acrylic board) | 1 | Mounting platform |
-| Wheels | 2 (+ 1 caster/support wheel) | Movement |
-| Jumper Wires (M-M / M-F) | Multiple | Connections |
-| Perfboard/Breadboard | 1 | Mounting NodeMCU and routing wires |
-| USB Cable | 1 | Power + Serial communication with PC |
-| Power Source (battery pack) | 1 | Powers motor driver / motors |
+| Wooden chassis | 1 | Mounting platform for all components |
+| Wheels + 1 caster wheel | 3 | Two drive wheels, one support wheel |
+| Jumper wires | Several | Connections between NodeMCU, driver, and motors |
+| Perfboard | 1 | Mounting the NodeMCU and routing connections |
+| USB cable | 1 | Power, programming, and serial communication |
+| Battery pack | 1 | Powers the motor driver and motors independently |
 
 ---
 
 ## System Architecture
 
+The control flow is straightforward: a command is sent from a PC over Serial, the NodeMCU interprets it, and the L298N drives the motors accordingly.
+
 ```mermaid
 graph LR
-    A[PC / Arduino IDE Serial Monitor] -- USB Serial 9600 baud --> B[NodeMCU ESP8266]
-    B -- Digital IN1/IN2/IN3/IN4 --> C[L298N Motor Driver]
-    B -- PWM ENA/ENB --> C
-    C --> D[Motor A - Left]
-    C --> E[Motor B - Right]
+    A[PC - Serial Monitor] -- USB Serial, 9600 baud --> B[NodeMCU ESP8266]
+    B -- Direction pins --> C[L298N Motor Driver]
+    B -- PWM speed pins --> C
+    C --> D[Left Motor]
+    C --> E[Right Motor]
 ```
 
-The PC sends a command character over USB Serial. The ESP8266 reads it, decides the direction/state, and drives the L298N's input pins (direction) and enable pins (speed via PWM), which in turn power the two DC motors.
+There is no wireless or cloud component in this version — control is entirely local, over a wired serial connection.
 
 ---
 
-## Circuit Diagram
+## Circuit / Wiring
+
+Pin connections between the NodeMCU and the L298N driver:
+
+| NodeMCU Pin | GPIO | L298N Pin | Function |
+|---|---|---|---|
+| D5 | GPIO14 | ENA | Speed control, left motor |
+| D1 | GPIO5 | IN1 | Direction control, left motor |
+| D2 | GPIO4 | IN2 | Direction control, left motor |
+| D6 | GPIO12 | ENB | Speed control, right motor |
+| D3 | GPIO0 | IN3 | Direction control, right motor |
+| D4 | GPIO2 | IN4 | Direction control, right motor |
+
+**Note:** D3 (GPIO0) and D4 (GPIO2) are ESP8266 boot-mode strapping pins. If they are pulled low during power-up, the board may fail to boot correctly — worth checking first if the board behaves unexpectedly on startup.
 
 ```mermaid
 graph TD
-    subgraph NodeMCU ESP8266
-        ENA["D5 (ENA - PWM)"]
-        IN1["D1 (IN1)"]
-        IN2["D2 (IN2)"]
-        ENB["D6 (ENB - PWM)"]
-        IN3["D3 (IN3)"]
-        IN4["D4 (IN4)"]
+    subgraph NodeMCU
+        ENA[D5 - ENA]
+        IN1[D1 - IN1]
+        IN2[D2 - IN2]
+        ENB[D6 - ENB]
+        IN3[D3 - IN3]
+        IN4[D4 - IN4]
     end
 
-    subgraph L298N Motor Driver
+    subgraph L298N Driver
         L_ENA[ENA]
         L_IN1[IN1]
         L_IN2[IN2]
         L_ENB[ENB]
         L_IN3[IN3]
         L_IN4[IN4]
-        OUT1[OUT1]
-        OUT2[OUT2]
-        OUT3[OUT3]
-        OUT4[OUT4]
+        OUT1[OUT1 / OUT2]
+        OUT2[OUT3 / OUT4]
     end
 
     ENA --> L_ENA
@@ -84,53 +98,38 @@ graph TD
     ENB --> L_ENB
     IN3 --> L_IN3
     IN4 --> L_IN4
-
-    OUT1 --> MotorA[Motor A - Left Wheel]
-    OUT2 --> MotorA
-    OUT3 --> MotorB[Motor B - Right Wheel]
-    OUT4 --> MotorB
+    OUT1 --> LeftMotor[Left Motor]
+    OUT2 --> RightMotor[Right Motor]
 ```
-
-**Pin mapping reference:**
-
-| NodeMCU Pin | GPIO | L298N Pin | Function |
-|---|---|---|---|
-| D5 | GPIO14 | ENA | Motor A speed (PWM) |
-| D1 | GPIO5 | IN1 | Motor A direction |
-| D2 | GPIO4 | IN2 | Motor A direction |
-| D6 | GPIO12 | ENB | Motor B speed (PWM) |
-| D3 | GPIO0 | IN3 | Motor B direction |
-| D4 | GPIO2 | IN4 | Motor B direction |
-
-> **Note:** D3 (GPIO0) and D4 (GPIO2) are ESP8266 boot-mode strapping pins. Avoid pulling them low externally at power-up, or the board may fail to boot correctly.
 
 ---
 
 ## Working Principle
 
-1. The ESP8266 initializes Serial communication at 9600 baud and sets all motor control pins as outputs.
-2. A command character (`F`, `B`, `L`, `R`, or `S`) is sent from the Serial Monitor.
-3. The `loop()` reads the incoming byte, converts it to uppercase, and matches it in a `switch` statement.
-4. Based on the matched command, the corresponding function (`forward()`, `backward()`, `leftTurn()`, `rightTurn()`, `stopMotor()`) sets the `IN1–IN4` pins HIGH/LOW to control motor direction through the L298N's H-Bridge.
-5. `analogWrite()` on `ENA`/`ENB` supplies PWM signal (full speed = 1023 on ESP8266's 10-bit PWM) to control motor speed.
-6. Turning is achieved by spinning the two motors in opposite directions (differential drive), while forward/backward drives both motors the same direction.
-7. Any unrecognized character prints `Invalid Command!` without changing motor state.
+1. On startup, the NodeMCU initializes Serial communication at 9600 baud and configures all six motor-control pins as outputs.
+2. The main loop continuously checks for incoming serial data.
+3. Each incoming character is converted to uppercase and matched against a switch statement, so commands are case-insensitive.
+4. Based on the match, one of five functions executes: `forward()`, `backward()`, `leftTurn()`, `rightTurn()`, or `stopMotor()`.
+5. Each function sets the IN1–IN4 pins HIGH/LOW in a specific pattern, which determines current flow direction through the H-bridge and, consequently, motor direction.
+6. Turning is achieved by driving the two motors in opposite directions rather than the same direction, producing a pivot rather than a straight-line move.
+7. Speed is currently fixed at maximum output (1023), since the ESP8266's PWM resolution is 10-bit (0–1023), unlike the 8-bit (0–255) range used on standard Arduino boards.
+8. Any character outside the defined command set is ignored and logged as `Invalid Command!` without affecting motor state.
 
 ---
 
 ## Software Requirements
 
-- **Arduino IDE** (2.x recommended)
-- **ESP8266 Board Package** installed via Arduino IDE Boards Manager
-  (Board selected: *NodeMCU 1.0 (ESP8266-12E Module)* or equivalent)
-- **Serial Monitor** (built into Arduino IDE) set to **9600 baud**
-- No external libraries required — the code uses only built-in `Serial`, `pinMode`, `digitalWrite`, and `analogWrite` functions
+- Arduino IDE (2.x recommended)
+- ESP8266 board package, installed via Boards Manager (`esp8266` search)
+- Board setting: NodeMCU 1.0 (ESP8266-12E Module)
+- Serial Monitor configured to 9600 baud
+- No external libraries required — the code relies only on built-in `Serial`, `pinMode`, `digitalWrite`, and `analogWrite` functions
 
 ---
 
 ## Code
 
-Full source code: [`robot_car.ino`](./robot_car.ino)
+Full source: [`robot_car.ino`](./robot_car.ino)
 
 ```cpp
 // Motor A pins
@@ -152,26 +151,24 @@ void setup() {
   pinMode(IN4, OUTPUT);
   Serial.println("Send Command: F,B,L,R,S");
 }
-
-// See robot_car.ino for full movement functions and main loop
 ```
+
+The complete implementation, including the movement functions and main loop, is available in the `.ino` file.
 
 ---
 
 ## Installation and Setup
 
-1. **Install Arduino IDE** from [arduino.cc](https://www.arduino.cc/en/software).
-2. **Add ESP8266 board support**:
-   - Go to `File > Preferences` → add this URL to *Additional Board Manager URLs*:
-     `http://arduino.esp8266.com/stable/package_esp8266com_index.json`
-   - Go to `Tools > Board > Boards Manager` → search `esp8266` → install.
-3. **Select the board**: `Tools > Board > NodeMCU 1.0 (ESP8266-12E Module)`
-4. **Select the correct COM port** under `Tools > Port`.
-5. **Wire the circuit** as per the [Circuit Diagram](#circuit-diagram) above.
-6. **Open `robot_car.ino`** in the Arduino IDE.
-7. **Upload the code** to the NodeMCU.
-8. **Open the Serial Monitor**, set baud rate to `9600`.
-9. **Send commands**: type `F`, `B`, `L`, `R`, or `S` and hit enter to control the car.
+1. Install the Arduino IDE.
+2. Add ESP8266 board support: `File > Preferences`, then add this URL under "Additional Board Manager URLs":
+   `http://arduino.esp8266.com/stable/package_esp8266com_index.json`
+3. Go to `Tools > Board > Boards Manager`, search for `esp8266`, and install the package.
+4. Select the board: `Tools > Board > NodeMCU 1.0 (ESP8266-12E Module)`.
+5. Connect the NodeMCU and select the correct port under `Tools > Port`.
+6. Wire the circuit according to the pin table above.
+7. Open `robot_car.ino` in the Arduino IDE and upload it.
+8. Open the Serial Monitor and set the baud rate to 9600.
+9. Send `F`, `B`, `L`, `R`, or `S` to control the car.
 
 ---
 
@@ -180,43 +177,41 @@ void setup() {
 ```
 ESP8266-Serial-Controlled-Robot-Car/
 │
-├── robot_car.ino        # Main Arduino/ESP8266 source code
-├── README.md            # Project documentation (this file)
-└── images/              # Photos/media of the hardware build
-    ├── robot.jpeg
-    └── robot_demo.mp4
+├── robot_car.ino     # Main source code
+├── README.md         # Project documentation
+└── images/           # Photos and demo video of the build
 ```
 
 ---
 
 ## Applications
 
-- Educational demonstration of embedded systems and motor control
-- Base platform for line-following, obstacle-avoidance, or maze-solving robots
-- Starting point for Bluetooth/WiFi/app-controlled RC cars
-- STEM teaching aid for basic robotics and IoT concepts
+- Demonstrates fundamental embedded systems concepts: motor control, PWM, and serial communication
+- Serves as a base platform for line-following, obstacle-avoidance, or maze-solving robots
+- Can be extended into a Bluetooth-, WiFi-, or app-controlled RC car
+- Useful as a teaching example for basic robotics and IoT concepts
 
 ---
 
 ## Future Enhancements
 
-- Add **Bluetooth (HC-05)** or **WiFi-based** control (e.g., a web page or mobile app) instead of wired Serial
-- Add **variable speed control** (send a number along with the direction command)
-- Add **obstacle avoidance** using an ultrasonic sensor (HC-SR04)
-- Add a **command timeout/watchdog** so motors auto-stop if connection is lost
-- Add **line-following sensors** (IR sensor array) for autonomous navigation
-- Power the system from an **onboard battery pack** for fully wireless operation
-- Filter out `\n`/`\r` characters in Serial input to avoid false "Invalid Command!" prints
+- Replace wired Serial control with Bluetooth (HC-05) or WiFi for remote operation
+- Add variable speed control instead of fixed full-speed output
+- Integrate an ultrasonic sensor (HC-SR04) for obstacle avoidance
+- Add a command timeout/watchdog so motors stop automatically if the connection is lost
+- Add IR sensors for autonomous line-following
+- Move to fully battery-powered operation, independent of USB
 
 ---
 
 ## Conclusion
 
-This project demonstrates the fundamentals of interfacing a microcontroller with a motor driver to build a functional, serially-controlled robot car. It provides a solid base for more advanced robotics projects involving wireless control, sensors, and autonomous navigation.
+This project reinforced my understanding of how a microcontroller interfaces with a motor driver to achieve controlled movement — covering H-bridge direction control, PWM-based speed regulation, and serial command parsing. It's a compact but complete foundation that I plan to build on for more advanced robotics work involving wireless control and sensor integration.
 
 ---
 
 ## Author
 
 **Parth A. Bapat**
-B.Sc. Computer Science Student | Embedded Systems & IoT Enthusiast
+
+B.Sc. Computer Science student, focused on embedded systems, IoT, and software development.
