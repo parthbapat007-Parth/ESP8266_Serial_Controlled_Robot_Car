@@ -189,8 +189,10 @@ This project reinforced my understanding of how a microcontroller interfaces wit
 
 ---
 
-## Author
+## Acknowledgements
 
-**Parth A. Bapat**
+This project was built during my internship at Learnalytics Tech Academy Pvt. Ltd., 
+under the guidance of Mr.Atul Borkar Sir[Learnalytics Tech Academy Pvt. Ltd.] . Their support and feedback during the 
+development process were valuable in building this project.
 
-B.Sc. Computer Science student, focused on embedded systems, IoT, and software development.
+---
