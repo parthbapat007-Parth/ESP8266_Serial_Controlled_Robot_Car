@@ -2,6 +2,7 @@
 
 A two-motor robot car built around a NodeMCU (ESP8266) and an L298N motor driver, controlled through simple serial commands (`F`, `B`, `L`, `R`, `S`). I built this as a foundational embedded systems project to practice motor control, PWM-based speed regulation, and serial communication before extending it into wireless or sensor-driven versions.
 
+![Robot](Images/RObot.jpeg)
 ---
 
 ## Overview
