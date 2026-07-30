@@ -70,8 +70,7 @@ Pin connections between the NodeMCU and the L298N driver:
 
 **Note:** D3 (GPIO0) and D4 (GPIO2) are ESP8266 boot-mode strapping pins. If they are pulled low during power-up, the board may fail to boot correctly — worth checking first if the board behaves unexpectedly on startup.
 
-[Images](./Circuit_diagram.png)
-
+![Circuit_Diagram](Images/Circuit_diagram.png)
 ```
 
 ---
