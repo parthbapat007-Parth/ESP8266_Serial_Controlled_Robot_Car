@@ -70,36 +70,8 @@ Pin connections between the NodeMCU and the L298N driver:
 
 **Note:** D3 (GPIO0) and D4 (GPIO2) are ESP8266 boot-mode strapping pins. If they are pulled low during power-up, the board may fail to boot correctly — worth checking first if the board behaves unexpectedly on startup.
 
-```mermaid
-graph TD
-    subgraph NodeMCU
-        ENA[D5 - ENA]
-        IN1[D1 - IN1]
-        IN2[D2 - IN2]
-        ENB[D6 - ENB]
-        IN3[D3 - IN3]
-        IN4[D4 - IN4]
-    end
+[Images](./Circuit_diagram.png)
 
-    subgraph L298N Driver
-        L_ENA[ENA]
-        L_IN1[IN1]
-        L_IN2[IN2]
-        L_ENB[ENB]
-        L_IN3[IN3]
-        L_IN4[IN4]
-        OUT1[OUT1 / OUT2]
-        OUT2[OUT3 / OUT4]
-    end
-
-    ENA --> L_ENA
-    IN1 --> L_IN1
-    IN2 --> L_IN2
-    ENB --> L_ENB
-    IN3 --> L_IN3
-    IN4 --> L_IN4
-    OUT1 --> LeftMotor[Left Motor]
-    OUT2 --> RightMotor[Right Motor]
 ```
 
 ---
