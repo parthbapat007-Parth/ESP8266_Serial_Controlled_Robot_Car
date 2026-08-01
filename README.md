@@ -168,3 +168,8 @@ under the guidance of Mr.Atul Borkar Sir[Learnalytics Tech Academy Pvt. Ltd.] . 
 development process were valuable in building this project.
 
 ---
+## Repository Maintained By
+
+**Parth Bapat**
+
+If you found this project helpful or interesting, consider giving the repository a star.
